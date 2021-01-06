@@ -16,7 +16,6 @@ function PrivateRoute({ component: Component, ...rest }) {
       {...rest}
       exact
       render={(props) => {
-        debugger;
         return isAuthenticated === true ? (
           <Component {...props} />
         ) : (
