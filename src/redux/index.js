@@ -1,11 +1,16 @@
-import { createStore, compose, applyMiddleware } from "redux";
-import createSagaMiddleware from "redux-saga";
+import { createStore, compose, applyMiddleware } from 'redux';
+import createSagaMiddleware from 'redux-saga';
 
-import createReducer from "./reducers";
-import rootSaga from "./saga";
+import createReducer from './reducers';
+import rootSaga from './saga';
+
+import { createBrowserHistory } from 'history';
+import { connectRouter } from 'connected-react-router';
+import { routerMiddleware } from 'connected-react-router';
+export const history = createBrowserHistory();
 
 const sagaMiddleware = createSagaMiddleware();
-
+const _routerMiddleware = routerMiddleware(history);
 function createSagaInjector(runSaga, rootSaga) {
   const injectedSagas = new Map();
 
@@ -19,7 +24,7 @@ function createSagaInjector(runSaga, rootSaga) {
     injectedSagas.set(key, task);
   };
 
-  injectSaga("root", rootSaga);
+  injectSaga('root', rootSaga);
 
   return injectSaga;
 }
@@ -28,9 +33,10 @@ const store = createStore(
   createReducer(),
   {},
   compose(
-    applyMiddleware(sagaMiddleware),
-    window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
-  )
+    applyMiddleware(sagaMiddleware, routerMiddleware(history)),
+    window.__REDUX_DEVTOOLS_EXTENSION__ &&
+      window.__REDUX_DEVTOOLS_EXTENSION__(),
+  ),
 );
 
 store.asyncReducers = {};

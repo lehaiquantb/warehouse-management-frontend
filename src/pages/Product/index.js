@@ -16,9 +16,8 @@ const Home = (props) => {
 
   return (
     <div>
-      <Link to="/">home</Link>
-      <Link to="/feed">feed</Link>
-      this is home pagekk
+  
+      this is home page
     </div>
   );
 };

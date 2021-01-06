@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 
-const Home = (props) => {
+const ProductDetail = (props) => {
   const dispatch = useDispatch();
 
   React.useEffect(() => {
@@ -18,9 +18,10 @@ const Home = (props) => {
     <div>
       <Link to="/">home</Link>
       <Link to="/feed">feed</Link>
-      this is home pagekk
+      <Link to="/profile">profile</Link>
+      this is home page
     </div>
   );
 };
 
-export default Home;
+export default ProductDetail;

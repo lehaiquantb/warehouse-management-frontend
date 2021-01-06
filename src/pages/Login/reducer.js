@@ -1,49 +1,54 @@
-import { actionTypes } from '../actions/user';
+import { actionTypes } from './action';
 
 const defaultState = {
   isAuthenticated: false,
   isAuthRequesting: false,
-  user: {},
+  status: '',
+  data: null,
+  error: null,
+  isRequesting: false,
 };
+
 export default (state = defaultState, action) => {
   switch (action.type) {
-    case actionTypes.AUTH: {
+    case actionTypes.LOGIN: {
       return {
         ...state,
         isAuthenticated: false,
-        isAuthRequesting: true,
+        isRequesting: true,
       };
     }
-    case actionTypes.AUTH_SUCCESS: {
+    case actionTypes.LOGIN_SUCCESS: {
       return {
         ...state,
         isAuthenticated: true,
-        ...action.payload,
-        isAuthRequesting: false,
+        isRequesting: false,
       };
     }
-    case actionTypes.AUTH_FAILURE: {
+    case actionTypes.LOGIN_FAILURE: {
       return {
         ...state,
         isAuthenticated: false,
-        isAuthRequesting: false,
+        isRequesting: false,
       };
     }
-
-    case actionTypes.LOGOUT: {
-      return {
-        ...state,
-      };
-    }
-    case actionTypes.LOGOUT_SUCCESS: {
+    case actionTypes.REGISTER: {
       return {
         ...state,
         isAuthenticated: false,
+        isRequesting: true,
       };
     }
-    case actionTypes.LOGOUT_FAILURE: {
+    case actionTypes.REGISTER_SUCCESS: {
       return {
         ...state,
+        isRequesting: false,
+      };
+    }
+    case actionTypes.REGISTER_FAILURE: {
+      return {
+        ...state,
+        isRequesting: false,
       };
     }
     default:

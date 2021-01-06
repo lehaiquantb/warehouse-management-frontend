@@ -2,11 +2,11 @@ import { lazy } from "react";
 import { initModule } from "../../helpers";
 
 export default {
-  path: "/home",
+  path: "/login",
   exact: true,
-  isPrivate:true,
+  isPrivate: false,
   component: lazy(async () => {
-    await initModule("Home", "homes");
+    await initModule("Login", "login");
     return import(".");
   }),
 };

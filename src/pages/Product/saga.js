@@ -4,7 +4,7 @@ function* checkAuth({ type, payload }) {
   try {
     yield delay(3000);
     yield put({
-      type: "get_profile::success",
+      type: "get_home::success",
       payload: {
         username: "hihi",
         display_name: "Ly Thanh Nhan",
@@ -17,7 +17,7 @@ function* checkAuth({ type, payload }) {
 
 export default function* () {
   while (true) {
-    const action = yield take("get_profile");
+    const action = yield take("get_home");
     yield fork(checkAuth, action);
   }
 }

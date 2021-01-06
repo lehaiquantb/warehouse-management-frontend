@@ -13,3 +13,5 @@ export const initModule = async (path, module) => {
   store.injectSaga(module, saga.default);
   return "ok";
 };
+
+// export const initModule

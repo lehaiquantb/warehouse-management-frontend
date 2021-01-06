@@ -2,11 +2,11 @@ import { lazy } from "react";
 import { initModule } from "../../helpers";
 
 export default {
-  path: "/profile",
-  exact: false,
+  path: "/receipts",
+  exact: true,
+  isPrivate:true,
   component: lazy(async () => {
-    await initModule("Feed", "feed");
-    await initModule("Profile", "profile");
+    await initModule("Receipt", "receipts");
     return import(".");
   }),
 };
