@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 // import "./LayoutMenu.css";
 import { useDispatch, useSelector } from 'react-redux';
-import { Layout, Menu, Breadcrumb, Avatar, Dropdown, Button } from 'antd';
+import { Layout, Menu, Breadcrumb, Avatar, Dropdown, Button, Spin } from 'antd';
 import {
   BarChartOutlined,
   HomeOutlined,
@@ -20,13 +20,14 @@ import logoFull from '../assets/images/logo.jpg';
 import pr_icon from '../assets/images/product-icon.jpg';
 import sp_icon from '../assets/images/supplier-icon.png';
 import { logout } from '../redux/actions/user';
+import Clock from '../components/Clock';
 const { Header, Content, Footer, Sider } = Layout;
 const { SubMenu } = Menu;
 
 function LayoutMenu(props) {
   const { children } = props;
+  const { isRequesting } = useSelector((state) => state.config);
   const [collapsed, setCollapsed] = useState(false);
-  const [timeNow, setTimeNow] = useState(new Date());
   const userName = useSelector((state) => state.user.name);
   const email = useSelector((state) => state.user.email);
   const onCollapse = (collapsed) => {
@@ -34,20 +35,14 @@ function LayoutMenu(props) {
     setCollapsed(collapsed);
   };
 
-  React.useEffect(() => {
-    const timeId = setInterval(() => {
-      setTimeNow(new Date());
-    }, 1000);
-    return () => {
-      clearInterval(timeId);
-    };
-  }, []);
+  React.useEffect(() => {}, []);
 
   const history = useHistory();
   const dispatch = useDispatch();
   const onLogout = () => {
     dispatch(logout(email));
   };
+
   const menu = (
     <Menu>
       <Menu.Item>{userName}</Menu.Item>
@@ -69,7 +64,15 @@ function LayoutMenu(props) {
       className="anticon anticon-form"
       style={{ marginRight: '10px', color: '#fff', minWidth: '14px' }}
     >
-      <img src={sp_icon} style={{ height: '15px', width: '15px',backgroundColor:'#fff', borderRadius:'100%' }} />
+      <img
+        src={sp_icon}
+        style={{
+          height: '15px',
+          width: '15px',
+          backgroundColor: '#fff',
+          borderRadius: '100%',
+        }}
+      />
     </span>
   );
 
@@ -84,8 +87,12 @@ function LayoutMenu(props) {
           {/* <Logo height={collapsed ? "50px" : "100px"} /> */}
           <img src={collapsed ? logo : logoFull} height={'60px'} />
         </div>
-        <Menu theme="dark" defaultSelectedKeys={['m-home']} mode="inline">
-          <Menu.Item key="m-home" icon={<HomeOutlined />}>
+        <Menu
+          theme="dark"
+          defaultSelectedKeys={[history.location.pathname || '/home']}
+          mode="inline"
+        >
+          <Menu.Item key="/home" icon={<HomeOutlined />}>
             <Link to="/home">Trang chủ</Link>
           </Menu.Item>
           <SubMenu key="sub-product" icon={ProductIcon} title="Sản phẩm">
@@ -133,11 +140,17 @@ function LayoutMenu(props) {
             className="site-layout-background"
             style={{ padding: 24, minHeight: 360, height: '100%' }}
           >
-            {children}
+            {isRequesting ? (
+              <Spin style={{ margin: 'auto' }} size="large" />
+            ) : (
+              children
+            )}
           </div>
         </Content>
         <Footer style={{ textAlign: 'center' }}>
-          <h6>Nhóm 22 - {timeNow.toLocaleTimeString()}</h6>
+          <h6>
+            <Clock />
+          </h6>
         </Footer>
       </Layout>
     </Layout>

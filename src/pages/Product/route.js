@@ -17,7 +17,26 @@ export const childRoutes = [
     exact: true,
     isPrivate: true,
     component: lazy(async () => {
+      await initModule('Product', 'products');
       return import('./createProduct');
+    }),
+  },
+  {
+    path: '/products/:PCode',
+    exact: true,
+    isPrivate: true,
+    component: lazy(async () => {
+      await initModule('Product', 'products');
+      return import('./productDetail');
+    }),
+  },
+  {
+    path: '/products/:PCode/edit',
+    exact: true,
+    isPrivate: true,
+    component: lazy(async () => {
+      await initModule('Product', 'products');
+      return import('./editProduct');
     }),
   },
 ];

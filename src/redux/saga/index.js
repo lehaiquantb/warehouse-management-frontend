@@ -1,5 +1,6 @@
 import { take, fork, delay, put, takeEvery, call } from 'redux-saga/effects';
 import loginApi from '../../api/loginApi';
+import { history } from '../index';
 import {
   actionTypes,
   authSuccess,
@@ -13,7 +14,10 @@ function* auth() {
   try {
     const response = yield call(loginApi.auth);
     yield put(authSuccess(response));
-    yield put(push('/products/create'));
+    if (history.location.state && history.location.state.from) {
+      yield put(push(history.location.state.from.pathname));
+      //history.replace(history.location.state.from);
+    } else yield put(push('/home'));
   } catch (e) {
     yield put(push('/login'));
     yield put(authFailure());

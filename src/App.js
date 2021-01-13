@@ -12,6 +12,7 @@ import { auth } from './redux/actions/user';
 import { Spin } from 'antd';
 import { ConnectedRouter } from 'connected-react-router';
 import { history } from './redux/index';
+import './App.css';
 console.log('routes', routes);
 const PrivateRoute = lazy(() => import('./containers/PrivateRoute'));
 

@@ -4,7 +4,7 @@ import { Route, Switch, useLocation } from 'react-router-dom';
 // import ErrorNotFound from '../components/common/ErrorNotFound';
 
 import LayoutMenu from './LayoutMenu';
-import { Card } from 'antd';
+import { Spin } from 'antd';
 import PrivateRoute from './PrivateRoute';
 import routes from '../pages/routes';
 import { ConnectedRouter } from 'connected-react-router';
@@ -19,13 +19,18 @@ function PageRouteContainer(props) {
   return (
     <LayoutMenu>
       <ConnectedRouter history={history}>
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<Spin />}>
           <Switch>
             {routes.map(
               ({ component: Component, path, isPrivate, ...rest }) => {
                 if (isPrivate)
                   return (
-                    <PrivateRoute key={path} component={Component} exact path={path} />
+                    <PrivateRoute
+                      key={path}
+                      component={Component}
+                      exact
+                      path={path}
+                    />
                   );
               },
             )}

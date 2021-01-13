@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Row,
@@ -14,60 +14,82 @@ import {
   Space,
   Upload,
   Checkbox,
-  Image,
 } from 'antd';
 import {
   MinusCircleOutlined,
   PlusOutlined,
   InboxOutlined,
 } from '@ant-design/icons';
-import { addCategory, getListCategory, createProduct } from './action';
+import {
+  addCategory,
+  getListCategory,
+  createProduct,
+  getProductByPCode,
+  updateProductByPCode,
+} from './action';
 import { formatCurrency } from '../../helpers/format';
 import { IMG_DEFAULT_BASE64 } from '../../helpers/constant';
 //import { Input, Label, FormFeedback } from 'reactstrap';
 const { Option } = Select;
-const CreateProduct = (props) => {
+const EditProduct = (props) => {
+  const [form] = Form.useForm();
+  let { PCode } = useParams();
   const user = useSelector((state) => state.user);
+  const { productDetail } = useSelector((state) => state.products);
   const { listCategory } = useSelector((state) => state.products);
   const dispatch = useDispatch();
-  const [isValidated, setIsValidated] = useState({
-    name: { value: false, mes: 'Tên không được để trống' },
-    PCode: { value: false, mes: '' },
-    vendor: { value: false, mes: '' },
-    price: { value: false, mes: '' },
-    quantity: { value: false, mes: '' },
-    status: { value: false, mes: '' },
-  });
+  const [_productDetail, setProductDetail] = useState({});
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isShowDescriptionInput, setIsShowDescriptionInput] = useState(false);
   const [previewTitleImage, setPreviewTitleImage] = useState('Ảnh');
   const [newCategoryName, setNewCategoryName] = useState('Danh mục chung');
   const [priceValue, setPriceValue] = useState(0);
   const [listImage, setListImage] = useState([
-    // {
-    //   uid: '1',
-    //   url: IMG_DEFAULT_BASE64,
-    //   status: 'done'
-    // },
-  ]);
-
-  const defaultFileList = [
     {
       uid: '1',
       name: 'default image',
-      url: IMG_DEFAULT_BASE64,
+      thumbUrl: IMG_DEFAULT_BASE64,
       type: 'image/png',
-      isImageUrl: true,
-      status: 'done',
     },
-  ];
-
+  ]);
   const [previewVisibleImage, setPreviewVisibleImage] = useState(false);
   const [previewImage, setPreviewImage] = useState(IMG_DEFAULT_BASE64);
   useEffect(() => {
+    dispatch(getProductByPCode(PCode));
     dispatch(getListCategory());
   }, []);
 
+  useEffect(() => {
+    form.setFieldsValue({
+      name: productDetail.name || '',
+      price: productDetail.price ? productDetail.price.formatMoney() : '',
+      PCode: productDetail.PCode,
+      vendor: productDetail.vendor || '',
+      description: productDetail.description || '',
+      quantity: productDetail.quantity == 0 ? 0 : productDetail.quantity,
+      category: productDetail.category ? productDetail.category._id : '',
+      options: productDetail.options || {},
+      status: productDetail.status == 'active' ? ['active'] : [],
+    });
+    let li = [];
+    li.push({
+      uid: '-1',
+      name: `imgp${PCode}`,
+      url: productDetail.image,
+      status: 'done',
+    });
+    if (productDetail.listImage) {
+      productDetail.listImage.forEach((item, index) => {
+        li.push({
+          uid: index,
+          name: `imgi${index}`,
+          url: item,
+          status: 'done',
+        });
+      });
+    }
+    setListImage(li);
+  }, [productDetail]);
   const getBase64 = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -94,6 +116,7 @@ const CreateProduct = (props) => {
   };
 
   const onFinish = async (values) => {
+    console.log('Success:', values);
     const product = {
       name: values.name,
       createdBy: user.email,
@@ -122,19 +145,26 @@ const CreateProduct = (props) => {
     }
 
     if (values.listImage) {
-      product.image = await getBase64(
-        values.listImage.fileList[0].originFileObj,
-      );
+      if (values.listImage.fileList[0].lastModified) {
+        product.image = await getBase64(
+          values.listImage.fileList[0].originFileObj,
+        );
+      } else {
+        product.image = values.listImage.fileList[0].url;
+      }
       product.listImage = [];
       for (let index = 1; index < values.listImage.fileList.length; index++) {
-        const img = await getBase64(
-          values.listImage.fileList[index].originFileObj,
-        );
+        let img;
+        if (values.listImage.fileList[index].lastModified) {
+          img = await getBase64(values.listImage.fileList[index].originFileObj);
+        } else {
+          img = values.listImage.fileList[index].url;
+        }
         product.listImage.push(img);
       }
     }
-    dispatch(createProduct(product));
-    console.log('Success:', values);
+    dispatch(updateProductByPCode(PCode, product));
+
     console.log(product);
   };
 
@@ -187,13 +217,14 @@ const CreateProduct = (props) => {
   );
   return (
     <div>
-      <h4>Thêm mới sản phẩm</h4>
+      <h4>{productDetail.name}</h4>
       <Form
+        form={form}
         onFinish={onFinish}
         onFinishFailed={onFinishFailed}
         layout="vertical"
       >
-        <Row gutter={[24, 24]}>
+        <Row gutter={24}>
           <Col span={16}>
             <Card style={cardStyle} size="small" title="Thông tin chung">
               <Row gutter={[16, 0]}>
@@ -215,7 +246,7 @@ const CreateProduct = (props) => {
               <Row gutter={[16, 0]}>
                 <Col span={12}>
                   <Form.Item label="Mã sản phẩm" name="PCode">
-                    <InputNumber style={{ width: '100%' }} min={0} />
+                    <InputNumber disabled style={{ width: '100%' }} min={0} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -225,29 +256,17 @@ const CreateProduct = (props) => {
                 </Col>
               </Row>
               <Row gutter={[16, 0]}>
-                <span
-                  style={{ color: '#017fff', cursor: 'pointer' }}
-                  onClick={() => {
-                    setIsShowDescriptionInput(!isShowDescriptionInput);
-                  }}
-                >
-                  Thêm mô tả
-                </span>
-                {isShowDescriptionInput ? (
-                  <Col span={24}>
-                    <Form.Item label="Mô tả" name="description">
-                      <Input.TextArea />
-                    </Form.Item>
-                  </Col>
-                ) : (
-                  ''
-                )}
+                <Col span={24}>
+                  <Form.Item label="Mô tả" name="description">
+                    <Input.TextArea />
+                  </Form.Item>
+                </Col>
               </Row>
             </Card>
             <Card size="small" title="Chi tiết sản phẩm">
               <Row gutter={[16, 0]}>
                 <Col span={12}>
-                  <Form.Item label="Số lượng" name="quantity" initialValue={0}>
+                  <Form.Item label="Số lượng" name="quantity">
                     <InputNumber style={{ width: '100%' }} min={0} />
                   </Form.Item>
                 </Col>
@@ -349,11 +368,7 @@ const CreateProduct = (props) => {
                 </span>
               }
             >
-              <Form.Item
-                label=""
-                name="category"
-                initialValue="5ff9a3241de3d51944818d07"
-              >
+              <Form.Item label="" name="category">
                 <Select style={{ width: '100%' }}>
                   {listCategory.map((item, index) => {
                     return <Option value={item._id}>{item.name}</Option>;
@@ -380,13 +395,11 @@ const CreateProduct = (props) => {
             </Card>
           </Col>
         </Row>
-        <Row gutter={[24, 24]}>
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Lưu
-            </Button>
-          </Form.Item>
-        </Row>
+        <Form.Item>
+          <Button type="primary" htmlType="submit">
+            Lưu
+          </Button>
+        </Form.Item>
       </Form>
       <Modal
         title="Thêm danh mục mới"
@@ -413,4 +426,4 @@ const CreateProduct = (props) => {
   );
 };
 
-export default CreateProduct;
+export default EditProduct;
