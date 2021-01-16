@@ -2,10 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Input, Table, Modal, Button, Image } from 'antd';
-import { SettingOutlined } from '@ant-design/icons';
+import {
+  SettingOutlined,
+  EditTwoTone,
+  DeleteTwoTone,
+  ExclamationCircleOutlined,
+} from '@ant-design/icons';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import OrderSettingTable from '../../components/OrderSettingTable/index';
-import { getProductPaging, getProductPFS, getListCategory } from './action';
+import {
+  getProductPaging,
+  getProductPFS,
+  getListCategory,
+  deleteProductByPCode,
+} from './action';
 const { Search } = Input;
 const ListProduct = (props) => {
   const __listCategory = useSelector((state) => state.products.listCategory);
@@ -13,6 +23,7 @@ const ListProduct = (props) => {
   const dispatch = useDispatch();
 
   const { listProductPaging } = useSelector((state) => state.products);
+  const { isDeletingProduct } = useSelector((state) => state.products);
   const { isProductPagingRequesting } = useSelector((state) => state.products);
   const onSearch = (value) => console.log(value);
   const [data, setData] = useState([]);
@@ -25,17 +36,17 @@ const ListProduct = (props) => {
     total: 10,
   });
   useEffect(() => {
-    dispatch(getProductPaging(1, 30));
+    dispatch(getProductPaging(pagination.current, pagination.defaultPageSize));
     dispatch(getListCategory());
   }, []);
 
   useEffect(() => {
-    setData(listProductPaging);
-  }, [listProductPaging]);
+    dispatch(getProductPaging(pagination.current, pagination.defaultPageSize));
+  }, [isDeletingProduct]);
 
   useEffect(() => {
-    setColumns(defaultColumns);
-  }, [__listCategory]);
+    setData(listProductPaging);
+  }, [listProductPaging]);
 
   useEffect(() => {
     setPagination({
@@ -48,6 +59,7 @@ const ListProduct = (props) => {
       key: 'PCode',
       title: 'Mã SP',
       dataIndex: 'PCode',
+      width: 100,
       show: true,
       sorter: true,
       render: (PCode) => <Link to={`/products/${PCode}`}>{PCode}</Link>,
@@ -55,6 +67,7 @@ const ListProduct = (props) => {
     {
       key: 'image',
       title: 'Ảnh',
+      width: 60,
       dataIndex: 'image',
       render: (image) => <Image width={40} src={image} />,
       show: true,
@@ -62,16 +75,16 @@ const ListProduct = (props) => {
     {
       key: 'name',
       title: 'Tên sản phẩm',
+      width: 200,
       dataIndex: 'name',
       sorter: true,
-      render: (name) => `${name}`,
-      className: 'no-wrap-space',
       show: true,
     },
     {
       key: 'category',
       title: 'Loại',
       dataIndex: 'category',
+      width: 150,
       render: (category) => {
         if (category && category.name) {
           return `${category.name}`;
@@ -87,18 +100,21 @@ const ListProduct = (props) => {
       key: 'price',
       title: 'Giá nhập gần nhất',
       dataIndex: 'price',
+      width: 150,
       render: (price) => price.formatMoney(),
       show: true,
     },
     {
       key: 'quantity',
       title: 'Số lượng',
+      width: 100,
       dataIndex: 'quantity',
       show: true,
     },
     {
       key: 'status',
       title: 'Trạng thái',
+      width: 130,
       dataIndex: 'status',
       render: (status) => {
         if (status == 'active')
@@ -112,20 +128,45 @@ const ListProduct = (props) => {
       show: true,
     },
   ];
-  const [columns, setColumns] = useState(defaultColumns);
 
+  const actionColumn = {
+    key: 'action',
+    title: 'Thao tác',
+    dataIndex: 'PCode',
+    width: 100,
+    fixed: 'right',
+    render: (PCode) => (
+      <>
+        <Link to={`/products/${PCode}/edit`}>
+          <EditTwoTone />
+        </Link>
+        {'  '}
+        <DeleteTwoTone onClick={() => confirmDelete(PCode)} />
+      </>
+    ),
+  };
+
+  let nc = defaultColumns.slice();
+  nc.push(actionColumn);
+
+  const [columns, setColumns] = useState(nc);
+  useEffect(() => {
+    setColumns(nc);
+  }, [__listCategory]);
   const fullColumns = [
     {
       key: 'PCode',
       title: 'Mã SP',
       dataIndex: 'PCode',
+      width: 100,
       show: true,
       sorter: true,
-      render: (PCode) => <Link to={`\products\\${PCode}`}>{PCode}</Link>,
+      render: (PCode) => <Link to={`/products/${PCode}`}>{PCode}</Link>,
     },
     {
       key: 'image',
       title: 'Ảnh',
+      width: 60,
       dataIndex: 'image',
       render: (image) => <Image width={40} src={image} />,
       show: true,
@@ -133,51 +174,62 @@ const ListProduct = (props) => {
     {
       key: 'name',
       title: 'Tên sản phẩm',
+      width: 200,
       dataIndex: 'name',
       sorter: true,
-      render: (name) => `${name}`,
-      className: 'no-wrap-space',
       show: true,
     },
     {
       key: 'category',
       title: 'Loại',
       dataIndex: 'category',
+      width: 150,
       render: (category) => {
         if (category && category.name) {
           return `${category.name}`;
         }
       },
+      filters: __listCategory.map((item) => {
+        console.log(item);
+        return { text: item.name, value: item._id };
+      }),
       show: true,
     },
     {
       key: 'price',
       title: 'Giá nhập gần nhất',
       dataIndex: 'price',
+      width: 150,
       render: (price) => price.formatMoney(),
       show: true,
     },
     {
       key: 'quantity',
       title: 'Số lượng',
+      width: 100,
       dataIndex: 'quantity',
       show: true,
     },
     {
       key: 'status',
       title: 'Trạng thái',
+      width: 130,
       dataIndex: 'status',
-
       render: (status) => {
         if (status == 'active')
           return <span style={{ color: '#20a917' }}>Đang giao dịch</span>;
         else return <span style={{ color: '#ea1a1a' }}>Ngừng giao dịch</span>;
       },
+      filters: [
+        { text: 'Đang giao dịch', value: 'active' },
+        { text: 'Ngừng giao dịch', value: 'inactive' },
+      ],
       show: true,
     },
     {
       key: 'createdAt',
       title: 'Ngày tạo',
+      width: 120,
       dataIndex: 'createdAt',
       render: (createdAt) => createdAt.formatDate(),
       show: false,
@@ -185,6 +237,7 @@ const ListProduct = (props) => {
     {
       key: 'updatedAt',
       title: 'Ngày sửa',
+      width: 120,
       dataIndex: 'updatedAt',
       render: (updatedAt) => updatedAt.formatDate(),
       show: false,
@@ -192,21 +245,26 @@ const ListProduct = (props) => {
     {
       key: 'createdBy',
       title: 'Tạo bởi',
+      width: 120,
       dataIndex: 'createdBy',
       show: false,
+      ellipsis: true,
     },
     {
       key: 'modifiedBy',
       title: 'Sửa bởi',
+      width: 120,
       dataIndex: 'modifiedBy',
       show: false,
+      ellipsis: true,
     },
     {
       key: 'description',
       title: 'Mô tả',
+      width: 120,
       dataIndex: 'description',
-      className: 'no-wrap-space',
       show: false,
+      ellipsis: true,
     },
   ];
   const cbOrderSettingColumns = (cl = defaultColumns) => {
@@ -218,24 +276,46 @@ const ListProduct = (props) => {
     dispatch(getProductPFS({ pagination, filters, sorter }));
   };
 
+  const confirmDelete = (PCode) => {
+    const config = {
+      title: 'Xác nhận',
+      icon: <ExclamationCircleOutlined />,
+      content: 'Bạn có chắc chắn muốn xóa sản phẩm này',
+      okText: 'Xóa',
+      cancelText: 'Hủy',
+      confirmLoading: isDeletingProduct,
+    };
+    let p = PCode;
+
+    Modal.confirm({
+      ...config,
+      onOk: () => {
+        dispatch(deleteProductByPCode(p));
+      },
+    });
+  };
+
   return (
     <div>
       <OrderSettingTable
         fullColumns={fullColumns}
         defaultColumns={defaultColumns}
         cbOrderSettingColumns={cbOrderSettingColumns}
+        actionColumn={actionColumn}
       />
       <Search placeholder="input search text" onSearch={onSearch} enterButton />
       <Table
+        size="small"
         columns={columns}
-        rowKey={(record) => record.key}
+        
         key={(record) => record.key}
         dataSource={data}
         pagination={pagination}
         loading={isProductPagingRequesting}
-        scroll={{ x: 1000 }}
         onChange={handleTableChange}
+        scroll={{ x: 1100 }}
       />
+      <Modal></Modal>
     </div>
   );
 };

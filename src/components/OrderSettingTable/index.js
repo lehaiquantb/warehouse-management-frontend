@@ -9,9 +9,8 @@ const OrderSettingTable = (props) => {
   const dispatch = useDispatch();
   const fullColumns = props.fullColumns;
   const defaultColumns = props.defaultColumns;
-  const selectValuesDefault = props.defaultColumns.map(
-    (item) => item.dataIndex,
-  );
+  const actionColumn = props.actionColumn;
+  const selectValuesDefault = props.defaultColumns.map((item) => item.key);
   useEffect(() => {}, []);
 
   const getItems = (count) =>
@@ -22,7 +21,7 @@ const OrderSettingTable = (props) => {
 
   const [items, setItems] = useState(defaultColumns);
   const [isModalVisible, setIsModalVisible] = useState(false);
-
+  const [selectValues, setSelectValues] = useState(selectValuesDefault);
   // a little function to help us with reordering the result
   const reorder = (list, startIndex, endIndex) => {
     const result = Array.from(list);
@@ -52,7 +51,11 @@ const OrderSettingTable = (props) => {
     );
 
     setItems(newItems);
-    props.cbOrderSettingColumns(newItems);
+    const newSelectValues = newItems.map((item) => item.key);
+    setSelectValues(newSelectValues);
+    let t = newItems.slice();
+    t.push(actionColumn);
+    props.cbOrderSettingColumns(t);
   };
 
   const showModal = () => {
@@ -61,7 +64,9 @@ const OrderSettingTable = (props) => {
 
   const handleOk = () => {
     setIsModalVisible(false);
-    props.cbOrderSettingColumns(items);
+    let t = items.slice();
+    t.push(actionColumn);
+    props.cbOrderSettingColumns(t);
   };
 
   const handleCancel = () => {
@@ -71,18 +76,24 @@ const OrderSettingTable = (props) => {
   const handleChangeSelectColumn = (values) => {
     let newColumns = [];
     values.forEach((element) => {
-      newColumns.push(fullColumns.find((col) => col.dataIndex == element));
+      newColumns.push(fullColumns.find((col) => col.key == element));
     });
+    setSelectValues(values);
     setItems(newColumns);
   };
 
   return (
     <>
-      <SettingOutlined onClick={showModal} />
+      <span onClick={showModal} style={{ float: 'right', cursor: 'pointer' }}>
+        Sắp xếp cột hiển thị
+        <SettingOutlined />
+      </span>
       <Modal
-        title="Cài đặt bảng dữ liệu"
+        title="Sắp xếp cột hiển thị"
         visible={isModalVisible}
         onOk={handleOk}
+        style={{ top: 20 }}
+        width={1000}
         onCancel={handleCancel}
       >
         <DragDropContext onDragEnd={onDragEnd}>
@@ -95,8 +106,8 @@ const OrderSettingTable = (props) => {
               >
                 {items.map((item, index) => (
                   <Draggable
-                    key={item.dataIndex}
-                    draggableId={item.dataIndex}
+                    key={item.key}
+                    draggableId={item.key}
                     index={index}
                   >
                     {(provided, snapshot) => (
@@ -125,11 +136,12 @@ const OrderSettingTable = (props) => {
           style={{ width: '100%' }}
           placeholder="Thêm cột cho bảng"
           onChange={handleChangeSelectColumn}
+          value={selectValues}
           defaultValue={selectValuesDefault}
         >
           {fullColumns.map((item, index) => {
             return (
-              <Select.Option key={item.key} value={item.dataIndex}>
+              <Select.Option key={item.key} value={item.key}>
                 {item.title}
               </Select.Option>
             );

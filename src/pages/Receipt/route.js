@@ -10,3 +10,34 @@ export default {
     return import(".");
   }),
 };
+
+
+export const childRoutes = [
+  {
+    path: '/receipts/create',
+    exact: true,
+    isPrivate: true,
+    component: lazy(async () => {
+      await initModule('Receipt', 'receipts');
+      return import('./createReceipt');
+    }),
+  },
+  {
+    path: '/receipts/:RCode',
+    exact: true,
+    isPrivate: true,
+    component: lazy(async () => {
+      await initModule('Receipt', 'receipts');
+      return import('./receiptDetail');
+    }),
+  },
+  {
+    path: '/receipts/:RCode/edit',
+    exact: true,
+    isPrivate: true,
+    component: lazy(async () => {
+      await initModule('Receipt', 'receipts');
+      return import('./editReceipt');
+    }),
+  },
+];

@@ -14,6 +14,7 @@ import {
   getProductByPCodeSuccess,
   updateProductByPCodeSuccess,
   updateProductByPCodeFailure,
+  deleteProductByPCodeDone,
 } from './action';
 import { push } from 'connected-react-router';
 import { isRequesting, isRequested } from '../../redux/actions/config';
@@ -39,6 +40,7 @@ function* createProduct({ product }) {
     const response = yield call(productApi.createProduct, product);
     yield put(createProductSuccess());
     notifSuccess(`Tạo sản phẩm mới thành công`);
+    yield put(push(`/products/${response.PCode}`));
   } catch (e) {
     yield put(createProductFailure());
     //yield put(authFailure());
@@ -103,6 +105,20 @@ function* updateProductByPCodeSaga({ PCode, newProduct }) {
   }
 }
 
+function* deleteProductByPCodeSaga({ PCode }) {
+  try {
+    const response = yield call(productApi.deleteProductByPCode, PCode);
+    notifSuccess(`Xóa thành công sản phẩm mã số ${PCode}`);
+    yield put(deleteProductByPCodeDone());
+    yield put(push(`/products`));
+  } catch (e) {
+    //yield put(authFailure());
+    notifFailureMes('Xóa thất bại');
+    yield put(deleteProductByPCodeDone());
+    console.log('we got error here', e);
+  }
+}
+
 export default function* () {
   yield takeEvery(actionTypes.ADD_CATEGORY, createCategory);
   yield takeEvery(actionTypes.CREATE_PRODUCT, createProduct);
@@ -116,5 +132,9 @@ export default function* () {
   yield takeEvery(
     actionTypes.UPDATE_PRODUCT_BY_PCODE,
     updateProductByPCodeSaga,
+  );
+  yield takeEvery(
+    actionTypes.DELETE_PRODUCT_BY_PCODE,
+    deleteProductByPCodeSaga,
   );
 }

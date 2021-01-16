@@ -8,6 +8,8 @@ const getProductPaging = (page, limit) =>
 const getProductByPCode = (PCode) => axiosClient.get(`/products/${PCode}`);
 const updateProductByPCode = (PCode, newProduct) =>
   axiosClient.put(`/products/${PCode}`, newProduct);
+const deleteProductByPCode = (PCode) =>
+  axiosClient.delete(`/products/${PCode}`);
 const getProductPagingFilterSorter = (pfs) =>
   axiosClient.post(`/products/pagingFilterAndSorter`, pfs);
 export default {
@@ -16,4 +18,5 @@ export default {
   getProductPagingFilterSorter,
   getProductByPCode,
   updateProductByPCode,
+  deleteProductByPCode
 };

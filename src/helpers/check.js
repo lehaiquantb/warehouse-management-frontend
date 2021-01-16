@@ -12,8 +12,8 @@ export const isEmptyValue = (value) => {
     value == '' ||
     value == null ||
     value == undefined ||
-    value == {} ||
-    value == []
+    JSON.stringify(value) == '{}' ||
+    JSON.stringify(value) == '[]'
   ) {
     return true;
   }

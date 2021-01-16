@@ -10,6 +10,7 @@ const defaultState = {
   listProductPaging: [],
   isProductPagingRequesting: false,
   productDetail: {},
+  isDeletingProduct: false,
 };
 export default (state = defaultState, action) => {
   switch (action.type) {
@@ -70,6 +71,18 @@ export default (state = defaultState, action) => {
       return {
         ...state,
         productDetail: action.productDetail,
+      };
+    }
+    case actionTypes.DELETE_PRODUCT_BY_PCODE: {
+      return {
+        ...state,
+        isDeletingProduct: true,
+      };
+    }
+    case actionTypes.DELETE_PRODUCT_BY_PCODE_DONE: {
+      return {
+        ...state,
+        isDeletingProduct: false,
       };
     }
     default:

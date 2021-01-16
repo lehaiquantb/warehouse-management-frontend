@@ -13,8 +13,9 @@
 .header {
   background: #fff;
   display: flex;
-  flex-direction: row-reverse;
+  flex-direction: row;
   padding: 0px 16px;
+  justify-content: space-between;
 }
 
 .header-avatar {

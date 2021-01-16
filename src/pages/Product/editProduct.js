@@ -119,7 +119,6 @@ const EditProduct = (props) => {
     console.log('Success:', values);
     const product = {
       name: values.name,
-      createdBy: user.email,
       modifiedBy: user.email,
       options: values.options || [],
       description: values.description || '',

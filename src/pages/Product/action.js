@@ -18,6 +18,8 @@ export const actionTypes = {
   UPDATE_PRODUCT_BY_PCODE: 'UPDATE_PRODUCT_BY_PCODE',
   UPDATE_PRODUCT_BY_PCODE_SUCCESS: 'UPDATE_PRODUCT_BY_PCODE_SUCCESS',
   UPDATE_PRODUCT_BY_PCODE_FAILURE: 'UPDATE_PRODUCT_BY_PCODE_FAILURE',
+  DELETE_PRODUCT_BY_PCODE: 'DELETE_PRODUCT_BY_PCODE',
+  DELETE_PRODUCT_BY_PCODE_DONE: 'DELETE_PRODUCT_BY_PCODE_DONE',
 };
 
 export function addCategory(category) {
@@ -129,5 +131,18 @@ export function updateProductByPCodeSuccess(updatedProduct) {
 export function updateProductByPCodeFailure() {
   return {
     type: actionTypes.UPDATE_PRODUCT_BY_PCODE_FAILURE,
+  };
+}
+
+export function deleteProductByPCode(PCode) {
+  return {
+    type: actionTypes.DELETE_PRODUCT_BY_PCODE,
+    PCode,
+  };
+}
+
+export function deleteProductByPCodeDone() {
+  return {
+    type: actionTypes.DELETE_PRODUCT_BY_PCODE_DONE,
   };
 }
