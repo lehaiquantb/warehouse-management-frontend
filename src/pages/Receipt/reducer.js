@@ -16,6 +16,8 @@ const defaultState = {
   listSupplierSearch: [],
   countProductSearch: 0,
   countSupplierSearch: 0,
+  listSupplierPaging: [],
+  isSupplierPagingRequesting: false,
 };
 export default (state = defaultState, action) => {
   switch (action.type) {
@@ -99,6 +101,20 @@ export default (state = defaultState, action) => {
         isSearchingSupplier: false,
         listSupplierSearch: action.listSupplierSearch,
         countSupplierSearch: action.countSupplierSearch,
+      };
+    }
+    case actionTypes.GET_SUPPLIER_PAGING_FILTER_SORTER: {
+      return {
+        ...state,
+        isSupplierPagingRequesting: true,
+      };
+    }
+    case actionTypes.GET_SUPPLIER_PAGING_FILTER_SORTER_SUCCESS: {
+      return {
+        ...state,
+        isSupplierPagingRequesting: false,
+        listSupplierPaging: action.listSupplierPaging,
+        count: action.count,
       };
     }
     default:

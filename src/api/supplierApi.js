@@ -12,11 +12,14 @@ const deleteSupplierBySCode = (SCode) =>
   axiosClient.delete(`/suppliers/${SCode}`);
 const getSupplierPagingFilterSorter = (pfs) =>
   axiosClient.post(`/suppliers/pagingFilterAndSorter`, pfs);
+const searchSupplier = (q, page, limit) =>
+  axiosClient.get(`/suppliers/search?q=${q}&page=${page}&limit=${limit}`);
 export default {
   createSupplier,
   getSupplierPaging,
   getSupplierPagingFilterSorter,
   getSupplierBySCode,
   updateSupplierBySCode,
-  deleteSupplierBySCode
+  deleteSupplierBySCode,
+  searchSupplier,
 };

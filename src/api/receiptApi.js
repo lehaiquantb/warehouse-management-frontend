@@ -12,10 +12,6 @@ const deleteReceiptByRCode = (RCode) =>
   axiosClient.delete(`/receipts/${RCode}`);
 const getReceiptPagingFilterSorter = (pfs) =>
   axiosClient.post(`/receipts/pagingFilterAndSorter`, pfs);
-const searchProduct = (q, page, limit) =>
-  axiosClient.get(`/products/search?q=${q}&page=${page}&limit=${limit}`);
-const searchSupplier = (q, page, limit) =>
-  axiosClient.get(`/suppliers/search?q=${q}&page=${page}&limit=${limit}`);
 export default {
   createReceipt,
   getReceiptPaging,
@@ -23,6 +19,4 @@ export default {
   getReceiptByRCode,
   updateReceiptByRCode,
   deleteReceiptByRCode,
-  searchProduct,
-  searchSupplier,
 };

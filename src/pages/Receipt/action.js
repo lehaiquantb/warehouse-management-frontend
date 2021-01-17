@@ -19,6 +19,9 @@ export const actionTypes = {
   SEARCH_PRODUCT_DONE: 'SEARCH_PRODUCT_DONE',
   SEARCH_SUPPLIER: 'SEARCH_SUPPLIER',
   SEARCH_SUPPLIER_DONE: 'SEARCH_SUPPLIER_DONE',
+  GET_SUPPLIER_PAGING_FILTER_SORTER: 'GET_SUPPLIER_PAGING_FILTER_SORTER',
+  GET_SUPPLIER_PAGING_FILTER_SORTER_SUCCESS:
+    'GET_SUPPLIER_PAGING_FILTER_SORTER_SUCCESS',
 };
 
 export function createReceipt(receipt) {
@@ -148,5 +151,19 @@ export function searchSupplierDone(listSupplierSearch, countSupplierSearch) {
     type: actionTypes.SEARCH_SUPPLIER_DONE,
     listSupplierSearch,
     countSupplierSearch,
+  };
+}
+
+export function getSupplierPFS(pfs) {
+  return {
+    type: actionTypes.GET_SUPPLIER_PAGING_FILTER_SORTER,
+    pfs,
+  };
+}
+export function getSupplierPFSSuccess(listSupplierPaging, count) {
+  return {
+    type: actionTypes.GET_SUPPLIER_PAGING_FILTER_SORTER_SUCCESS,
+    listSupplierPaging,
+    count,
   };
 }

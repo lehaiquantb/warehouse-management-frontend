@@ -12,11 +12,14 @@ const deleteProductByPCode = (PCode) =>
   axiosClient.delete(`/products/${PCode}`);
 const getProductPagingFilterSorter = (pfs) =>
   axiosClient.post(`/products/pagingFilterAndSorter`, pfs);
+const searchProduct = (q, page, limit) =>
+  axiosClient.get(`/products/search?q=${q}&page=${page}&limit=${limit}`);
 export default {
   createProduct,
   getProductPaging,
   getProductPagingFilterSorter,
   getProductByPCode,
   updateProductByPCode,
-  deleteProductByPCode
+  deleteProductByPCode,
+  searchProduct,
 };

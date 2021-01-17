@@ -1,5 +1,7 @@
 import { take, fork, delay, put, takeEvery, call } from 'redux-saga/effects';
 import receiptApi from '../../api/receiptApi';
+import supplierApi from '../../api/supplierApi';
+import productApi from '../../api/productApi';
 import {
   actionTypes,
   createReceiptSuccess,
@@ -13,6 +15,7 @@ import {
   searchProduct,
   searchProductDone,
   searchSupplierDone,
+  getSupplierPFSSuccess
 } from './action';
 import { push } from 'connected-react-router';
 import { isRequesting, isRequested } from '../../redux/actions/config';
@@ -97,7 +100,7 @@ function* deleteReceiptByRCodeSaga({ RCode }) {
 
 function* searchProductSaga({ q, page, limit }) {
   try {
-    const response = yield call(receiptApi.searchProduct, q, page, limit);
+    const response = yield call(productApi.searchProduct, q, page, limit);
     yield put(searchProductDone(response.products, response.count));
     //yield put(push(`/receipts/${response.RCode}`));
   } catch (e) {
@@ -109,11 +112,21 @@ function* searchProductSaga({ q, page, limit }) {
 
 function* searchSupplierSaga({ q, page, limit }) {
   try {
-    const response = yield call(receiptApi.searchSupplier, q, page, limit);
+    const response = yield call(supplierApi.searchSupplier, q, page, limit);
     yield put(searchSupplierDone(response.suppliers, response.count));
     //yield put(push(`/receipts/${response.RCode}`));
   } catch (e) {
     yield put(searchSupplierDone([], 0));
+    //yield put(authFailure());
+    console.log('we got error here', e);
+  }
+}
+
+function* getSupplierPFSSaga({ pfs }) {
+  try {
+    const response = yield call(supplierApi.getSupplierPagingFilterSorter, pfs);
+    yield put(getSupplierPFSSuccess(response.suppliers, response.count));
+  } catch (e) {
     //yield put(authFailure());
     console.log('we got error here', e);
   }
@@ -137,4 +150,8 @@ export default function* () {
   );
   yield takeEvery(actionTypes.SEARCH_PRODUCT, searchProductSaga);
   yield takeEvery(actionTypes.SEARCH_SUPPLIER, searchSupplierSaga);
+  yield takeEvery(
+    actionTypes.GET_SUPPLIER_PAGING_FILTER_SORTER,
+    getSupplierPFSSaga,
+  );
 }

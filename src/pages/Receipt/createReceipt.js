@@ -18,6 +18,7 @@ import {
   AutoComplete,
   Avatar,
   Table,
+  notification,
 } from 'antd';
 import { isExist } from '../../helpers/check';
 import { formatCurrency } from '../../helpers/format';
@@ -29,6 +30,10 @@ import {
   CloseOutlined,
 } from '@ant-design/icons';
 import { IMG_DEFAULT_BASE64 } from '../../helpers/constant';
+import {
+  notifFailure,
+  notifFailureMes,
+} from '../../components/notification/Notification';
 //import { Input, Label, FormFeedback } from 'reactstrap';
 const CreateReceipt = (props) => {
   const spRef = useRef(null);
@@ -73,22 +78,6 @@ const CreateReceipt = (props) => {
     return;
   };
 
-  const onFinish = async (values) => {
-    const receipt = {};
-
-    if (values.RCode) {
-      receipt.RCode = values.RCode;
-    }
-    //dispatch(createReceipt(receipt));
-    console.log('Success:', values);
-    console.log(receipt);
-  };
-
-  const onFinishFailed = (errorInfo) => {
-    console.log('Failed:', errorInfo);
-  };
-
-  const fields = [];
   const [optionProducts, setOptionProducts] = useState([]);
   const [optionSuppliers, setOptionSuppliers] = useState([]);
   const [supplier, setSupplier] = useState({});
@@ -98,9 +87,98 @@ const CreateReceipt = (props) => {
   const [products, setProducts] = useState([]);
   const [isAddPayment, setIsAddPayment] = useState(false);
   const [errorPaidMoney, setErrorPaidMoney] = useState('validating');
+  const [stockStatus, setStockStatus] = useState('NOT_YET');
+
+  const onFinish = async (values) => {
+    console.log('Success:', values);
+    if (!isExist(supplier)) {
+      notifFailureMes('Bạn cần thêm nhà cung cấp để tạo đơn');
+      return;
+    }
+    if (!isExist(products)) {
+      notifFailureMes('Bạn cần thêm ít nhất 1 sản phẩm để tạo đơn');
+      return;
+    }
+    const totalMoney =
+      parseInt(
+        document
+          .getElementById('total-money')
+          .textContent.replace(/\,/gm, '')
+          .replace(/[^0-9,]/gm, ''),
+      ) || 0;
+    let payments = [];
+    let paymentStatus = 'NOT_YET';
+
+    if (values.paidMoney && values.paymentMethod) {
+      const p =
+        parseInt(
+          values.paidMoney.replace(/\,/gm, '').replace(/[^0-9,]/gm, ''),
+        ) || 0;
+      payments.push({
+        createdBy: user.email,
+        modifiedBy: user.email,
+        paymentMethod: values.paymentMethod,
+        paidMoney: p,
+        status: 'DONE',
+      });
+      paymentStatus = p < totalMoney ? 'PARTIAL' : 'DONE';
+    }
+
+    let _products = [];
+    products.forEach((item) => {
+      let isChangedCostPrice = false;
+      const quantityPerProduct =
+        parseInt(document.getElementById(`i-quantity-${item.PCode}`).value) ||
+        0;
+      const pricePerProduct =
+        parseInt(
+          document
+            .getElementById(`i-costPrice-${item.PCode}`)
+            .value.replace(/\,/gm, '')
+            .replace(/[^0-9,]/gm, ''),
+        ) || 0;
+      if (item.traceCostPrices && item.traceCostPrices.length > 0) {
+        const priceFirst = item.price;
+        const priceLatest =
+          item.traceCostPrices[item.traceCostPrices.length - 1].value;
+        if (pricePerProduct != priceFirst && pricePerProduct != priceLatest) {
+          isChangedCostPrice = true;
+        }
+      }
+      _products.push({
+        isChangedCostPrice,
+        productId: item._id,
+        quantityPerProduct: quantityPerProduct,
+        costPrice: pricePerProduct,
+      });
+    });
+
+    let receipt = {
+      createdBy: user.email,
+      modifiedBy: user.email,
+      note: values.note || '',
+      tags: values.tags || [],
+      stockStatus: stockStatus,
+      totalMoney: totalMoney,
+      supplier: supplier._id,
+      paymentList: payments,
+      paymentStatus: paymentStatus,
+      products: _products,
+    };
+
+    if (values.RCode) {
+      receipt.RCode = values.RCode;
+    }
+    dispatch(createReceipt(receipt));
+    console.log(receipt);
+  };
+
+  const onFinishFailed = (errorInfo) => {
+    console.log('Failed:', errorInfo);
+  };
 
   const onChangeQuantityPerProduct = (e, PCode) => {
-    const quantityPerProduct = parseInt(e) || 0;
+    const quantityPerProduct = parseInt(e.target.value) || 0;
     const pricePerProduct =
       parseInt(
         document
@@ -112,6 +190,7 @@ const CreateReceipt = (props) => {
       pricePerProduct * quantityPerProduct
     ).formatMoney();
     changeTotalQuantityMoney();
+    //document.getElementById(`i-quantity-${PCode}`).blur();
   };
   const onChangeCostPrice = (e, PCode) => {
     const pricePerProduct =
@@ -225,10 +304,12 @@ const CreateReceipt = (props) => {
       dataIndex: 'quantity',
       render: (quantity, record) => {
         return (
-          <InputNumber
+          <input
             onChange={(e) => onChangeQuantityPerProduct(e, record.PCode)}
-            size="small"
+            //size="small"
+            className="ant-input ant-input-sm"
             style={{ width: '70px' }}
+            type="number"
             min={1}
             defaultValue={1}
             // max={quantity}
@@ -246,7 +327,7 @@ const CreateReceipt = (props) => {
         if (traceCostPrices && traceCostPrices.length > 0) {
           price = isCostPriceLatest
             ? traceCostPrices[traceCostPrices.length - 1].value.formatMoney()
-            : traceCostPrices[0].value.formatMoney();
+            : record.price.formatMoney();
           if (!price) {
             price = 0;
           }
@@ -276,7 +357,7 @@ const CreateReceipt = (props) => {
         if (traceCostPrices && traceCostPrices.length > 0) {
           price = isCostPriceLatest
             ? traceCostPrices[traceCostPrices.length - 1].value.formatMoney()
-            : traceCostPrices[0].value.formatMoney();
+            : record.price.formatMoney();
           if (!price) {
             price = 0;
           }
@@ -357,7 +438,7 @@ const CreateReceipt = (props) => {
     products.forEach((item) => {
       const costPricePerProduct = e.target.checked
         ? item.traceCostPrices[item.traceCostPrices.length - 1].value
-        : item.traceCostPrices[0].value;
+        : item.price;
       const quantityPerProduct =
         parseInt(document.getElementById(`i-quantity-${item.PCode}`).value) ||
         0;
@@ -368,6 +449,7 @@ const CreateReceipt = (props) => {
         `s-totalMoneyPerProduct-${item.PCode}`,
       ).innerHTML = (costPricePerProduct * quantityPerProduct).formatMoney();
     });
+    changeTotalQuantityMoney();
   };
 
   const changeTotalQuantityMoney = () => {
@@ -385,9 +467,14 @@ const CreateReceipt = (props) => {
             .replace(/[^0-9,]/gm, ''),
         ) || 0;
     });
-    //console.log(totalQuantity, totalMoney);
-    document.getElementById('total-quantity').innerHTML = totalQuantity;
+    console.log(totalQuantity, totalMoney);
+    document.getElementById(
+      'total-quantity',
+    ).innerHTML = totalQuantity.toString();
     document.getElementById('total-money').innerHTML = totalMoney.formatMoney();
+    if (isAddPayment) {
+      onChangePaidMoney();
+    }
   };
 
   return (
@@ -485,7 +572,7 @@ const CreateReceipt = (props) => {
                   <Col span={12}>
                     <Form.Item
                       label="Hình thức thanh toán"
-                      name="payment"
+                      name="paymentMethod"
                       initialValue={'CASH'}
                     >
                       <Select style={{ width: '100%' }}>
@@ -530,7 +617,11 @@ const CreateReceipt = (props) => {
                 </div>
               }
               extra={
-                <Checkbox onChange={onChangeStockStatus}>
+                <Checkbox
+                  onChange={(e) => {
+                    setStockStatus(e.target.checked ? 'DONE' : 'NOT_YET');
+                  }}
+                >
                   Nhập hàng vào kho
                 </Checkbox>
               }
@@ -574,6 +665,14 @@ const CreateReceipt = (props) => {
                       <p>SĐT: {supplier.phone || ''} </p>
                       <p>Email: {supplier.email || ''} </p>
                       <p>Địa chỉ: {supplier.address || ''} </p>
+                      <p>
+                        Đã trả:{' '}
+                        {supplier.paid ? supplier.paid.formatMoney() : 0}{' '}
+                      </p>
+                      <p>
+                        Còn nợ:{' '}
+                        {supplier.debt ? supplier.debt.formatMoney() : 0}{' '}
+                      </p>
                     </>
                   ) : (
                     ''
